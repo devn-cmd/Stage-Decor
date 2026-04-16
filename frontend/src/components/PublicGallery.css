@@ -447,3 +447,137 @@
 }
 
 .pub-back-btn:hover { color: var(--pub-lavender); }
+
+/* ── Tablet (768px) ───────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .pub-header {
+    padding: 48px 16px 36px;
+  }
+
+  .pub-header h1 {
+    font-size: 2.6rem;
+  }
+
+  .pub-header .tagline {
+    font-size: 0.95rem;
+  }
+
+  .pub-container {
+    padding: 0 14px 60px;
+  }
+
+  .pub-filters {
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .pub-filter-btn {
+    padding: 7px 18px;
+    font-size: 0.85rem;
+  }
+
+  .pub-grid {
+    gap: 18px;
+  }
+
+  .pub-modal__details {
+    padding: 24px 20px;
+  }
+
+  .pub-modal__details h2 {
+    font-size: 1.6rem;
+  }
+
+  .pub-modal__image-wrap {
+    height: 45vh;
+  }
+
+  .pub-booking {
+    padding: 28px 20px;
+  }
+
+  .pub-contact-options {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .pub-contact-btn {
+    justify-content: center;
+    padding: 13px 20px;
+  }
+}
+
+/* ── Mobile phones (480px) ──────────────────────────────────── */
+@media (max-width: 480px) {
+  .pub-header {
+    padding: 36px 14px 28px;
+  }
+
+  .pub-header h1 {
+    font-size: 2rem;
+    letter-spacing: -0.02em;
+  }
+
+  .pub-header .tagline {
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+  }
+
+  .pub-filters {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pub-filter-btn {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+  }
+
+  .pub-grid {
+    gap: 14px;
+  }
+
+  .pub-card__info {
+    padding: 14px 14px;
+  }
+
+  .pub-card__name {
+    font-size: 0.95rem;
+  }
+
+  .pub-modal {
+    border-radius: 16px;
+  }
+
+  .pub-modal__image-wrap {
+    height: 38vh;
+  }
+
+  .pub-modal__details {
+    padding: 20px 16px;
+  }
+
+  .pub-modal__details h2 {
+    font-size: 1.4rem;
+  }
+
+  .pub-book-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 13px 24px;
+  }
+
+  .pub-booking h2 {
+    font-size: 1.5rem;
+  }
+
+  .pub-booking {
+    padding: 22px 16px;
+  }
+}

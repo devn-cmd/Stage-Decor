@@ -34,17 +34,29 @@
   max-width: 1200px;
 }
 
-/* ── Responsive ──────────────────────────────────────────────── */
+/* ── Tablet (768px) ──────────────────────────────────────────── */
 @media (max-width: 768px) {
   :root {
     --sidebar-width: 0px;
   }
 
-  .sidebar {
-    transform: translateX(-100%);
+  .app::before {
+    left: 0;
+  }
+
+  .app__main {
+    margin-left: 0;
   }
 
   .app__content {
-    padding: 16px 16px 48px;
+    /* Leave room for the floating hamburger button */
+    padding: 72px 16px 48px;
+  }
+}
+
+/* ── Small phones (480px) ────────────────────────────────────── */
+@media (max-width: 480px) {
+  .app__content {
+    padding: 68px 12px 40px;
   }
 }

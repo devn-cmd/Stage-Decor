@@ -8,9 +8,9 @@
   border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
-  z-index: 100;
+  z-index: 200;
   overflow-y: auto;
-  transition: width var(--transition-smooth);
+  transition: transform var(--transition-smooth);
 }
 
 /* ── Brand ──────────────────────────────────────────────────── */
@@ -153,4 +153,68 @@
   font-size: 0.72rem;
   color: var(--text-muted);
   text-align: center;
+  margin-top: 8px;
+}
+
+/* ── Hamburger button (mobile only) ─────────────────────────── */
+.sidebar__hamburger {
+  display: none;
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 300;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-size: 1.4rem;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-md);
+}
+
+.sidebar__hamburger:hover {
+  background: var(--bg-surface);
+  border-color: var(--border-active);
+}
+
+.sidebar__hamburger--open {
+  background: rgba(108, 92, 231, 0.15);
+  border-color: var(--border-active);
+}
+
+/* ── Overlay backdrop ────────────────────────────────────────── */
+.sidebar__backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 10, 20, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 150;
+  animation: fadeIn 0.25s ease;
+}
+
+/* ── Mobile breakpoint ───────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sidebar__hamburger {
+    display: flex;
+  }
+
+  .sidebar__backdrop {
+    display: block;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    width: 260px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .sidebar--open {
+    transform: translateX(0);
+  }
 }

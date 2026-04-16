@@ -227,3 +227,49 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ── Mobile / Tablet breakpoints ────────────────────────────── */
+@media (max-width: 768px) {
+  .upload-form {
+    max-width: 100%;
+  }
+
+  .dropzone {
+    padding: 36px 20px;
+  }
+
+  .category-selector {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .category-btn {
+    padding: 12px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dropzone {
+    padding: 28px 16px;
+  }
+
+  .dropzone__icon {
+    width: 56px;
+    height: 56px;
+    font-size: 1.6rem;
+  }
+
+  .dropzone__text {
+    font-size: 0.9rem;
+  }
+
+  .category-selector {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .submit-btn {
+    padding: 14px 20px;
+    font-size: 0.95rem;
+  }
+}
