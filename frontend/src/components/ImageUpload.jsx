@@ -2,33 +2,33 @@ import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-toastify';
 import { HiOutlineCloudUpload, HiOutlineX, HiOutlineCheck } from 'react-icons/hi';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { storage } from '../firebase';
 import Header from './Header';
 import { uploadImage } from '../api';
 import './ImageUpload.css';
 
 const CATEGORIES = [
-  { value: 'wedding', label: 'Wedding', emoji: '💒' },
+  { value: 'wedding',   label: 'Wedding',   emoji: '💒' },
   { value: 'reception', label: 'Reception', emoji: '✨' },
-  { value: 'birthday', label: 'Birthday', emoji: '🎂' },
-  { value: 'others', label: 'Others', emoji: '🎭' },
+  { value: 'birthday',  label: 'Birthday',  emoji: '🎂' },
+  { value: 'others',    label: 'Others',    emoji: '🎭' },
 ];
 
 export default function ImageUpload() {
-  const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState(null);
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState('');
+  const [file,      setFile]      = useState(null);
+  const [preview,   setPreview]   = useState(null);
+  const [name,      setName]      = useState('');
+  const [category,  setCategory]  = useState('');
   const [uploading, setUploading] = useState(false);
+  const [progress,  setProgress]  = useState(0);
 
   const onDrop = useCallback((accepted) => {
     if (accepted.length > 0) {
       const f = accepted[0];
       setFile(f);
       setPreview(URL.createObjectURL(f));
-      if (!name) {
-        // Auto-fill name from filename
-        setName(f.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' '));
-      }
+      if (!name) setName(f.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' '));
     }
   }, [name]);
 
@@ -39,34 +39,50 @@ export default function ImageUpload() {
     multiple: false,
   });
 
-  const clearFile = () => {
-    setFile(null);
-    setPreview(null);
-  };
+  const clearFile = () => { setFile(null); setPreview(null); };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!file) return toast.error('Please select an image');
-    if (!name.trim()) return toast.error('Please enter a name');
-    if (!category) return toast.error('Please select a category');
+    if (!file)          return toast.error('Please select an image');
+    if (!name.trim())   return toast.error('Please enter a name');
+    if (!category)      return toast.error('Please select a category');
 
     setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('name', name.trim());
-    formData.append('category', category);
+    setProgress(0);
 
     try {
+      // ── Step 1: Upload file to Firebase Storage ──────────────
+      const storageRef = ref(storage, `images/${Date.now()}_${file.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      const firebaseUrl = await new Promise((resolve, reject) => {
+        uploadTask.on(
+          'state_changed',
+          (snap) => {
+            const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+            setProgress(pct);
+          },
+          (err) => reject(err),
+          async () => {
+            const url = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve(url);
+          }
+        );
+      });
+
+      // ── Step 2: Send URL + metadata to FastAPI backend ───────
+      const formData = new FormData();
+      formData.append('name',         name.trim());
+      formData.append('category',     category);
+      formData.append('firebase_url', firebaseUrl);
+
       await uploadImage(formData);
       toast.success('Image uploaded successfully! 🎉');
+
       // Reset form
-      setFile(null);
-      setPreview(null);
-      setName('');
-      setCategory('');
+      setFile(null); setPreview(null); setName(''); setCategory(''); setProgress(0);
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Upload failed');
+      toast.error(err.response?.data?.detail || err.message || 'Upload failed');
     } finally {
       setUploading(false);
     }
@@ -100,20 +116,25 @@ export default function ImageUpload() {
             </div>
           ) : (
             <div className="dropzone__placeholder">
-              <div className="dropzone__icon">
-                <HiOutlineCloudUpload />
-              </div>
+              <div className="dropzone__icon"><HiOutlineCloudUpload /></div>
               <p className="dropzone__text">
-                {isDragActive
-                  ? 'Drop your image here...'
-                  : 'Drag & drop an image here, or click to browse'}
+                {isDragActive ? 'Drop your image here...' : 'Drag & drop an image here, or click to browse'}
               </p>
-              <span className="dropzone__hint">
-                Supports JPG, PNG, WebP, GIF
-              </span>
+              <span className="dropzone__hint">Supports JPG, PNG, WebP, GIF</span>
             </div>
           )}
         </div>
+
+        {/* Upload progress bar */}
+        {uploading && progress > 0 && (
+          <div style={{ margin: '8px 0 16px', background: '#0f1630', borderRadius: '8px', overflow: 'hidden', height: '6px' }}>
+            <div style={{
+              height: '100%', width: `${progress}%`,
+              background: 'linear-gradient(90deg, #6c5ce7, #a29bfe)',
+              transition: 'width 0.3s ease',
+            }} />
+          </div>
+        )}
 
         {/* Name input */}
         <div className="form-group">
@@ -141,30 +162,18 @@ export default function ImageUpload() {
               >
                 <span className="category-btn__emoji">{emoji}</span>
                 <span className="category-btn__label">{label}</span>
-                {category === value && (
-                  <HiOutlineCheck className="category-btn__check" />
-                )}
+                {category === value && <HiOutlineCheck className="category-btn__check" />}
               </button>
             ))}
           </div>
         </div>
 
         {/* Submit */}
-        <button
-          type="submit"
-          className={`submit-btn ${uploading ? 'submit-btn--loading' : ''}`}
-          disabled={uploading}
-        >
+        <button type="submit" className={`submit-btn ${uploading ? 'submit-btn--loading' : ''}`} disabled={uploading}>
           {uploading ? (
-            <>
-              <span className="submit-btn__spinner" />
-              Uploading...
-            </>
+            <><span className="submit-btn__spinner" />{progress < 100 ? `Uploading ${progress}%…` : 'Saving…'}</>
           ) : (
-            <>
-              <HiOutlineCloudUpload />
-              Upload Image
-            </>
+            <><HiOutlineCloudUpload />Upload Image</>
           )}
         </button>
       </form>

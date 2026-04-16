@@ -1,15 +1,20 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import os
 
-# Database file stored alongside the app
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'stagedecor.db')}"
+# ── Load DATABASE_URL from environment (Render provides this) ────
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./stagedecor.db")
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+# Render PostgreSQL gives "postgres://" but SQLAlchemy needs "postgresql://"
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+# SQLite needs check_same_thread=False; PostgreSQL doesn't
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
 Base = declarative_base()
 
 
