@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { HiOutlineLockClosed, HiOutlineUser } from 'react-icons/hi';
 
 const inputStyle = {
   width: '100%',
@@ -79,7 +80,7 @@ export default function AdminLogin() {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="admin"
+              placeholder="Devan"
               style={inputStyle}
             />
           </div>
