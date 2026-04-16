@@ -1,0 +1,32 @@
+.contact-form {
+  max-width: 680px;
+}
+
+.contact-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.contact-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-field--full {
+  margin-bottom: 28px;
+}
+
+.contact-field__label-icon {
+  font-size: 1rem;
+  vertical-align: -2px;
+  margin-right: 6px;
+  color: var(--accent-primary-light);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.6;
+}

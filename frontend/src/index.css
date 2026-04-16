@@ -1,0 +1,179 @@
+/* ═══════════════════════════════════════════════════════════════
+   SilkStage Admin – Design System
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+/* ── CSS Custom Properties ──────────────────────────────────── */
+:root {
+  /* Background layers */
+  --bg-primary: #060a14;
+  --bg-secondary: #0a0f1e;
+  --bg-card: #0d1329;
+  --bg-card-hover: #111937;
+  --bg-surface: #141c36;
+  --bg-input: #0f1630;
+
+  /* Accent colors */
+  --accent-primary: #6c5ce7;
+  --accent-primary-light: #8b7cf7;
+  --accent-glow: rgba(108, 92, 231, 0.25);
+  --accent-secondary: #00cec9;
+  --accent-warning: #fdcb6e;
+  --accent-danger: #ff6b6b;
+  --accent-success: #00b894;
+
+  /* Text */
+  --text-primary: #f0f0f8;
+  --text-secondary: #8892b0;
+  --text-muted: #5a6380;
+  --text-accent: #a29bfe;
+
+  /* Borders */
+  --border-subtle: rgba(108, 92, 231, 0.12);
+  --border-active: rgba(108, 92, 231, 0.35);
+  --border-card: rgba(255, 255, 255, 0.04);
+
+  /* Gradients */
+  --gradient-main: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+  --gradient-surface: linear-gradient(145deg, rgba(13, 19, 41, 0.8), rgba(20, 28, 54, 0.4));
+  --gradient-glow: radial-gradient(circle at 50% 0%, rgba(108, 92, 231, 0.15), transparent 70%);
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 30px rgba(108, 92, 231, 0.15);
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.25s ease;
+  --transition-smooth: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  /* Fonts */
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Outfit', 'Inter', sans-serif;
+
+  /* Sidebar */
+  --sidebar-width: 260px;
+  --sidebar-collapsed: 72px;
+}
+
+/* ── Reset ──────────────────────────────────────────────────── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-primary);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-family: var(--font-primary);
+}
+
+input, textarea, select {
+  font-family: var(--font-primary);
+  outline: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-active);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
+
+/* ── Utility animations ─────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(108, 92, 231, 0.1); }
+  50% { box-shadow: 0 0 30px rgba(108, 92, 231, 0.25); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s var(--transition-smooth) forwards;
+}
+
+.animate-slide-up {
+  animation: slideInUp 0.5s var(--transition-smooth) forwards;
+}

@@ -1,0 +1,50 @@
+/* ═══════════════════════════════════════════════════════════════
+   App Layout
+   ═══════════════════════════════════════════════════════════════ */
+
+.app {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-primary);
+  position: relative;
+}
+
+.app::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width);
+  right: 0;
+  height: 300px;
+  background: var(--gradient-glow);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app__main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+.app__content {
+  padding: 16px 36px 48px;
+  max-width: 1200px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 0px;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .app__content {
+    padding: 16px 16px 48px;
+  }
+}
