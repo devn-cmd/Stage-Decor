@@ -2,8 +2,6 @@ import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-toastify';
 import { HiOutlineCloudUpload, HiOutlineX, HiOutlineCheck } from 'react-icons/hi';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { storage } from '../firebase';
 import Header from './Header';
 import { uploadImage } from '../api';
 import './ImageUpload.css';
@@ -21,7 +19,6 @@ export default function ImageUpload() {
   const [name,      setName]      = useState('');
   const [category,  setCategory]  = useState('');
   const [uploading, setUploading] = useState(false);
-  const [progress,  setProgress]  = useState(0);
 
   const onDrop = useCallback((accepted) => {
     if (accepted.length > 0) {
@@ -48,39 +45,17 @@ export default function ImageUpload() {
     if (!category)      return toast.error('Please select a category');
 
     setUploading(true);
-    setProgress(0);
-
     try {
-      // ── Step 1: Upload file to Firebase Storage ──────────────
-      const storageRef = ref(storage, `images/${Date.now()}_${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-
-      const firebaseUrl = await new Promise((resolve, reject) => {
-        uploadTask.on(
-          'state_changed',
-          (snap) => {
-            const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
-            setProgress(pct);
-          },
-          (err) => reject(err),
-          async () => {
-            const url = await getDownloadURL(uploadTask.snapshot.ref);
-            resolve(url);
-          }
-        );
-      });
-
-      // ── Step 2: Send URL + metadata to FastAPI backend ───────
       const formData = new FormData();
-      formData.append('name',         name.trim());
-      formData.append('category',     category);
-      formData.append('firebase_url', firebaseUrl);
+      formData.append('file', file);
+      formData.append('name', name.trim());
+      formData.append('category', category);
 
       await uploadImage(formData);
       toast.success('Image uploaded successfully! 🎉');
 
       // Reset form
-      setFile(null); setPreview(null); setName(''); setCategory(''); setProgress(0);
+      setFile(null); setPreview(null); setName(''); setCategory('');
     } catch (err) {
       toast.error(err.response?.data?.detail || err.message || 'Upload failed');
     } finally {
@@ -125,17 +100,6 @@ export default function ImageUpload() {
           )}
         </div>
 
-        {/* Upload progress bar */}
-        {uploading && progress > 0 && (
-          <div style={{ margin: '8px 0 16px', background: '#0f1630', borderRadius: '8px', overflow: 'hidden', height: '6px' }}>
-            <div style={{
-              height: '100%', width: `${progress}%`,
-              background: 'linear-gradient(90deg, #6c5ce7, #a29bfe)',
-              transition: 'width 0.3s ease',
-            }} />
-          </div>
-        )}
-
         {/* Name input */}
         <div className="form-group">
           <label className="form-label" htmlFor="image-name">Image Name</label>
@@ -171,7 +135,7 @@ export default function ImageUpload() {
         {/* Submit */}
         <button type="submit" className={`submit-btn ${uploading ? 'submit-btn--loading' : ''}`} disabled={uploading}>
           {uploading ? (
-            <><span className="submit-btn__spinner" />{progress < 100 ? `Uploading ${progress}%…` : 'Saving…'}</>
+            <><span className="submit-btn__spinner" />Uploading…</>
           ) : (
             <><HiOutlineCloudUpload />Upload Image</>
           )}

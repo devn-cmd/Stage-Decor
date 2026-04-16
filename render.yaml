@@ -12,9 +12,6 @@ services:
         fromDatabase:
           name: stagedecor-db
           property: connectionString
-      - key: ALLOWED_ORIGINS
-        value: https://YOUR_FIREBASE_PROJECT_ID.web.app,https://YOUR_CUSTOM_DOMAIN.com
-
 databases:
   - name: stagedecor-db
     databaseName: stagedecor

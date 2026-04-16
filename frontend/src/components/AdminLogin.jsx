@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { HiOutlineLockClosed, HiOutlineUser } from 'react-icons/hi';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
+import { loginAdmin } from '../api';
 
 const inputStyle = {
   width: '100%',
@@ -15,24 +14,21 @@ const inputStyle = {
 };
 
 export default function AdminLogin() {
-  const [email,    setEmail]    = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error,    setError]    = useState('');
-  const [loading,  setLoading]  = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const response = await loginAdmin(username, password);
       localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('token', response.data.access_token);
       navigate('/admin');
     } catch (err) {
       setError('Invalid credentials. Please try again.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -66,18 +62,18 @@ export default function AdminLogin() {
           <p style={{ color: '#8892b0', fontSize: '0.88rem', letterSpacing: '0.04em' }}>Admin Panel</p>
         </div>
 
-        {/* Email */}
+        {/* Username */}
         <div style={{ marginBottom: '20px' }}>
           <label style={{ display: 'block', color: '#8892b0', fontSize: '0.84rem', fontWeight: 600, marginBottom: '8px' }}>
-            Email
+            Username
           </label>
           <div style={{ position: 'relative' }}>
             <HiOutlineUser style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#5a6380', fontSize: '1.1rem' }} />
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@stagedecor.com"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Devan"
               required
               style={inputStyle}
             />
@@ -110,17 +106,16 @@ export default function AdminLogin() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={loading}
           style={{
             width: '100%', padding: '14px',
-            background: loading ? '#4a3fa0' : 'linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%)',
+            background: 'linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%)',
             color: '#fff', border: 'none', borderRadius: '12px',
-            fontWeight: 700, fontSize: '1rem', cursor: loading ? 'not-allowed' : 'pointer',
+            fontWeight: 700, fontSize: '1rem', cursor: 'pointer',
             fontFamily: "'Inter', sans-serif", boxShadow: '0 0 30px rgba(108, 92, 231, 0.2)',
             transition: 'all 0.2s ease',
           }}
         >
-          {loading ? 'Signing in…' : 'Login to Dashboard'}
+          Login to Dashboard
         </button>
 
         <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.8rem', color: '#5a6380' }}>

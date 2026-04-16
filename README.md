@@ -68,9 +68,9 @@ Stage Decor is a full-stack web application designed for a stage decoration busi
 
 | Service | Provider | Purpose | Free Tier |
 |---|---|---|---|
-| **Hosting** | Firebase Hosting | Serves the React frontend | 10 GB/month |
-| **Image Storage** | Firebase Storage | Stores uploaded images | 5 GB |
-| **Admin Auth** | Firebase Auth | Secure admin login | 10k users/month |
+| **Hosting** | Vercel | Serves the React frontend | Generous |
+| **Image Storage** | Cloudinary | Stores uploaded images | Generous |
+| **Admin Auth** | FastAPI Custom Auth | Secure JWT-based admin login | Built-in |
 | **API Server** | Render | Runs the FastAPI backend | 750 hrs/month |
 | **Database** | Render PostgreSQL | Stores image metadata & contact info | 90 days free |
 
@@ -108,7 +108,6 @@ stagedecor/
 │   ├── .env.example            # Environment variable template
 │   ├── public/                 # Static assets
 │   └── src/
-│       ├── firebase.js         # Firebase SDK initialization
 │       ├── api.js              # Axios API helper functions
 │       ├── App.jsx             # Route definitions
 │       ├── App.css             # Layout styles
@@ -118,7 +117,7 @@ stagedecor/
 │           ├── AdminLogin.jsx          # Firebase Auth login
 │           ├── Sidebar.jsx/css         # Admin nav (hamburger on mobile)
 │           ├── Dashboard.jsx/css       # Stats dashboard
-│           ├── ImageUpload.jsx/css     # Firebase Storage upload UI
+│           ├── ImageUpload.jsx/css     # Backend direct upload UI
 │           ├── ImageGallery.jsx/css    # Manage gallery (edit/delete)
 │           ├── ContactSettings.jsx/css # Contact info manager
 │           └── ImageEditModal.jsx/css  # Edit image modal
@@ -180,226 +179,61 @@ npm run dev
 ## 🌐 Production Deployment (End-to-End Guide)
 
 This section walks you through deploying the full stack for free using:
-- **Firebase** (Hosting + Storage + Authentication) for the frontend
+- **Vercel** for the frontend
 - **Render** (Web Service + PostgreSQL) for the backend
+- **Cloudinary** for image storage
 
 ---
 
-### ─── PHASE 1: Firebase Setup ──────────────────────────────────────
+### ─── PHASE 1: Cloudinary Setup ──────────────────────────────────────
 
-#### 1.1 — Create a Firebase Project
-
-1. Go to **[console.firebase.google.com](https://console.firebase.google.com)**
-2. Click **"Add project"**
-3. Enter project name: `stage-decor` (or any name)
-4. Disable Google Analytics (optional) → **Create project**
-
----
-
-#### 1.2 — Enable Firebase Authentication
-
-1. In the Firebase Console sidebar → **Build → Authentication**
-2. Click **"Get started"**
-3. Under **Sign-in method** tab → Click **Email/Password** → Toggle **Enable** → Save
-4. Go to the **Users** tab → Click **"Add user"**
-   - Email: `admin@stagedecor.com`
-   - Password: `5753`
-5. Click **Add user** — this is the admin login credential
-
-> ⚠️ The app login page will now use this email/password via Firebase Auth.
-
----
-
-#### 1.3 — Enable Firebase Storage
-
-1. Firebase Console → **Build → Storage**
-2. Click **"Get started"** → Choose **Production mode** → Select your region → Done
-3. Go to the **Rules** tab → Replace the rules with:
-
-```js
-rules_version = '2';
-service firebase.storage {
-  match /b/{bucket}/o {
-    match /images/{allPaths=**} {
-      allow read: if true;                      // Anyone can view images
-      allow write: if request.auth != null;     // Only logged-in admins can upload
-    }
-  }
-}
-```
-
-4. Click **Publish**
-
----
-
-#### 1.4 — Register Your Web App & Get Config
-
-1. Firebase Console → ⚙️ **Project Settings** (gear icon)
-2. Scroll to **"Your apps"** → Click **`</>`** (Web) icon
-3. Register app with nickname `stage-decor-web` → **Register app**
-4. Copy the `firebaseConfig` object — you'll need these values:
-
-```js
-const firebaseConfig = {
-  apiKey: "AIza...",
-  authDomain: "stage-decor.firebaseapp.com",
-  projectId: "stage-decor",
-  storageBucket: "stage-decor.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abc123"
-};
-```
-
----
+1. Sign up at [cloudinary.com](https://cloudinary.com)
+2. Go to your Dashboard and get the API Environment variable:
+   `CLOUDINARY_URL=cloudinary://<your_api_key>:<your_api_secret>@<your_cloud_name>`
+3. Add this to your Render Environment Variables for the backend.
 
 ### ─── PHASE 2: Render Backend Deployment ──────────────────────────
 
-#### 2.1 — Create a Render Account
-
-1. Go to **[render.com](https://render.com)** → Sign up (free)
-2. Connect your **GitHub** account
-
----
-
-#### 2.2 — Deploy via Blueprint (render.yaml)
-
-The repo already contains `render.yaml` which auto-configures everything.
+The repo already contains `render.yaml` which auto-configures the basic services.
 
 1. Render Dashboard → **New → Blueprint**
-2. Select your GitHub repo: `devn-cmd/Stage-Decor`
-3. Render will detect `render.yaml` and show you:
-   - ✅ **stagedecor-api** — FastAPI web service
-   - ✅ **stagedecor-db** — Free PostgreSQL database
-4. Click **Apply** — Render provisions both automatically
+2. Select your GitHub repo
+3. Click **Apply** — Render provisions both API and Database.
+4. Add Environment Variables to your Web Service:
+   - `CLOUDINARY_URL`: <your_cloudinary_url>
+   - `JWT_SECRET_KEY`: <your_secret_key>
 
-> 🕐 First deploy takes ~3–5 minutes.
+Note the Backend URL (e.g. `https://stagedecor-api.onrender.com`).
 
----
+### ─── PHASE 3: Deploy Frontend to Vercel ──────────────────────────
 
-#### 2.3 — Note Your Backend URL
-
-After deploy, Render gives your API a public URL like:
-
-```
-https://stagedecor-api.onrender.com
-```
-
-Copy this — you'll need it for the frontend `.env` file.
-
-> ⚠️ **Free Render services sleep after 15 minutes of inactivity.** First request after sleep takes ~30 seconds to wake up.
-
----
-
-### ─── PHASE 3: Frontend Environment Variables ─────────────────────
-
-#### 3.1 — Create Your `.env` File
-
-Inside `frontend/`, create a file called `.env` (copy from `.env.example`):
-
-```env
-# Firebase — paste values from Step 1.4
-VITE_FIREBASE_API_KEY=AIza...
-VITE_FIREBASE_AUTH_DOMAIN=stage-decor.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=stage-decor
-VITE_FIREBASE_STORAGE_BUCKET=stage-decor.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
-VITE_FIREBASE_APP_ID=1:123456789:web:abc123
-
-# Render backend URL — from Step 2.3
-VITE_API_URL=https://stagedecor-api.onrender.com
-```
-
-> ⚠️ Never commit `.env` to Git. It is already in `.gitignore`.
-
----
-
-#### 3.2 — Update `.firebaserc` with Your Project ID
-
-Open `frontend/.firebaserc` and replace the placeholder:
-
-```json
-{
-  "projects": {
-    "default": "stage-decor"
-  }
-}
-```
-
----
-
-### ─── PHASE 4: Deploy Frontend to Firebase Hosting ───────────────
-
-#### 4.1 — Install Firebase CLI
-
-```bash
-npm install -g firebase-tools
-```
-
-#### 4.2 — Login to Firebase
-
-```bash
-firebase login
-```
-
-This opens a browser window — sign in with the Google account that owns your Firebase project.
-
-#### 4.3 — Build the React App
-
-```bash
-cd frontend
-npm run build
-```
-
-This outputs a production-ready `dist/` folder.
-
-#### 4.4 — Deploy to Firebase Hosting
-
-```bash
-firebase deploy --only hosting
-```
-
-After a few seconds you'll see:
-
-```
-✔  Deploy complete!
-Hosting URL: https://stage-decor.web.app
-```
+1. Go to **[vercel.com](https://vercel.com)**
+2. Click **Add New** → **Project**
+3. Import your GitHub repository.
+4. Select the `frontend` folder as the Root Directory.
+5. In Environment Variables, add:
+   `VITE_API_URL=https://stagedecor-api.onrender.com`
+6. Click **Deploy**.
 
 > 🎉 Your website is now live!
-
----
-
-### ─── PHASE 5: Also Add Firebase Env Vars to Render ──────────────
-
-Your backend doesn't use Firebase directly, but for future Firebase Admin SDK integration, add the project ID to Render:
-
-1. Render Dashboard → Your **stagedecor-api** service → **Environment**
-2. Update `ALLOWED_ORIGINS` to include your Firebase Hosting URL:
-   ```
-   https://stage-decor.web.app,https://stage-decor.firebaseapp.com
-   ```
-3. Click **Save Changes** → Render redeploys automatically
-
----
 
 ### ─── Final URLs ────────────────────────────────────────────────
 
 | Page | URL |
 |---|---|
-| 🌐 Public Gallery | `https://stage-decor.web.app` |
-| 🔐 Admin Login | `https://stage-decor.web.app/login` |
-| 📊 Admin Panel | `https://stage-decor.web.app/admin` |
+| 🌐 Public Gallery | _Assigned Vercel URL_ |
+| 🔐 Admin Login | `_Vercel_URL_/login` |
+| 📊 Admin Panel | `_Vercel_URL_/admin` |
 | ⚙️ API (Render) | `https://stagedecor-api.onrender.com` |
-| 📖 API Swagger Docs | `https://stagedecor-api.onrender.com/docs` |
 
 ### 🔑 Admin Credentials
 
 | Field | Value |
 |---|---|
-| **Email** | `admin@stagedecor.com` |
+| **Username** | `Devan` |
 | **Password** | `5753` |
 
-> These are your Firebase Auth credentials — change them anytime in Firebase Console → Authentication → Users.
+> These are custom JWT credentials handled directly by your backend.
 
 ---
 
@@ -407,9 +241,11 @@ Your backend doesn't use Firebase directly, but for future Firebase Admin SDK in
 
 ### Update Frontend
 ```bash
-cd frontend
-npm run build
-firebase deploy --only hosting
+# Push to GitHub
+git add .
+git commit -m "Update frontend"
+git push
+# Vercel auto-deploys on push
 ```
 
 ### Update Backend

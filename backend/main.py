@@ -1,7 +1,15 @@
 import os
+import uuid
+import shutil
+import cloudinary
+import cloudinary.uploader
 from typing import Optional, List
-from fastapi import FastAPI, Depends, HTTPException, Form
+from datetime import datetime, timedelta
+import jwt
+
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from database import engine, get_db, Base
@@ -13,27 +21,85 @@ from schemas import (
     ContactInfoUpdate,
 )
 
-# ── Create tables ────────────────────────────────────────────────
+# ── Create tables ─────────────
 Base.metadata.create_all(bind=engine)
+
 
 # ── FastAPI app ──────────────────────────────────────────────────
 app = FastAPI(title="Stage Decor API", version="2.0.0")
 
-# ── Allowed origins ──────────────────────────────────────────────
-ALLOWED_ORIGINS = os.getenv(
-    "ALLOWED_ORIGINS",
-    "http://localhost:5173"
-).split(",")
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],           # tighten in production if needed
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 ALLOWED_CATEGORIES = {"wedding", "reception", "birthday", "others"}
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"}
+
+# Configure Cloudinary
+# It is assumed that CLOUDINARY_URL environment variable is set
+# e.g., CLOUDINARY_URL=cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+cloudinary.config(secure=True)
+
+# ── Authentication ────────────────────────────────────────────────
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "super-secret-key-for-stagedecor")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 1 week
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def get_current_admin(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except jwt.PyJWTError:
+        raise credentials_exception
+    return username
+
+@app.post("/api/login")
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    # Hardcoded test credentials
+    if form_data.username == "Devan" and form_data.password == "5753":
+        access_token = create_access_token(data={"sub": form_data.username})
+        return {"access_token": access_token, "token_type": "bearer"}
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Incorrect username or password",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+def _save_upload(file: UploadFile) -> str:
+    """Save upload strictly to Cloudinary."""
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File type '{ext}' not allowed. Use: {', '.join(ALLOWED_EXTENSIONS)}",
+        )
+    
+    # Upload to Cloudinary (assuming CLOUDINARY_URL is configured in environment)
+    try:
+        result = cloudinary.uploader.upload(file.file)
+        return result.get("secure_url")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload image to Cloudinary: {str(e)}")
 
 
 # ── Image Endpoints ──────────────────────────────────────────────
@@ -42,20 +108,18 @@ ALLOWED_CATEGORIES = {"wedding", "reception", "birthday", "others"}
 async def upload_image(
     name: str = Form(...),
     category: str = Form(...),
-    firebase_url: str = Form(...),
+    file: UploadFile = File(...),
     db: Session = Depends(get_db),
+    admin: str = Depends(get_current_admin),
 ):
-    """
-    Register a new image. The file has already been uploaded to
-    Firebase Storage by the frontend; we just store the download URL.
-    """
     if category.lower() not in ALLOWED_CATEGORIES:
         raise HTTPException(
             status_code=400,
             detail=f"Invalid category. Use: {', '.join(ALLOWED_CATEGORIES)}",
         )
 
-    db_image = Image(name=name, category=category.lower(), filename=firebase_url)
+    filename_or_url = _save_upload(file)
+    db_image = Image(name=name, category=category.lower(), filename=filename_or_url)
     db.add(db_image)
     db.commit()
     db.refresh(db_image)
@@ -67,7 +131,6 @@ def list_images(
     category: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
-    """List all images, optionally filtered by category."""
     query = db.query(Image).order_by(Image.created_at.desc())
     if category:
         query = query.filter(Image.category == category.lower())
@@ -76,7 +139,6 @@ def list_images(
 
 @app.get("/api/images/{image_id}", response_model=ImageResponse)
 def get_image(image_id: int, db: Session = Depends(get_db)):
-    """Get a single image by ID."""
     image = db.query(Image).filter(Image.id == image_id).first()
     if not image:
         raise HTTPException(status_code=404, detail="Image not found")
@@ -88,8 +150,8 @@ def update_image(
     image_id: int,
     update: ImageUpdate,
     db: Session = Depends(get_db),
+    admin: str = Depends(get_current_admin),
 ):
-    """Update image name and/or category."""
     image = db.query(Image).filter(Image.id == image_id).first()
     if not image:
         raise HTTPException(status_code=404, detail="Image not found")
@@ -110,15 +172,18 @@ def update_image(
 
 
 @app.delete("/api/images/{image_id}")
-def delete_image(image_id: int, db: Session = Depends(get_db)):
-    """
-    Delete an image record from the database.
-    The file in Firebase Storage can be cleaned up from the Firebase Console
-    or via firebase-admin SDK if needed.
-    """
+def delete_image(image_id: int, db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
     image = db.query(Image).filter(Image.id == image_id).first()
     if not image:
         raise HTTPException(status_code=404, detail="Image not found")
+
+    # Clean up Cloudinary using public_id extraction
+    if image.filename.startswith("http"):
+        try:
+            public_id = image.filename.split("/")[-1].split(".")[0]
+            cloudinary.uploader.destroy(public_id)
+        except Exception:
+            pass
 
     db.delete(image)
     db.commit()
@@ -129,7 +194,6 @@ def delete_image(image_id: int, db: Session = Depends(get_db)):
 
 @app.get("/api/stats/")
 def get_stats(db: Session = Depends(get_db)):
-    """Return image count stats for the dashboard."""
     total     = db.query(Image).count()
     wedding   = db.query(Image).filter(Image.category == "wedding").count()
     reception = db.query(Image).filter(Image.category == "reception").count()
@@ -145,7 +209,6 @@ def get_stats(db: Session = Depends(get_db)):
 
 @app.get("/api/contact/", response_model=ContactInfoResponse)
 def get_contact(db: Session = Depends(get_db)):
-    """Get admin contact information."""
     contact = db.query(ContactInfo).first()
     if not contact:
         contact = ContactInfo()
@@ -156,8 +219,7 @@ def get_contact(db: Session = Depends(get_db)):
 
 
 @app.put("/api/contact/", response_model=ContactInfoResponse)
-def update_contact(update: ContactInfoUpdate, db: Session = Depends(get_db)):
-    """Update admin contact information."""
+def update_contact(update: ContactInfoUpdate, db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
     contact = db.query(ContactInfo).first()
     if not contact:
         contact = ContactInfo()

@@ -5,8 +5,24 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const api = axios.create({ baseURL: API_BASE });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export const loginAdmin = (username, password) => {
+  const params = new URLSearchParams();
+  params.append('username', username);
+  params.append('password', password);
+  return api.post('/api/login', params);
+};
+
+
 // ── Images ────────────────────────────────────────────────────────
-// Upload: frontend sends firebase_url (already uploaded to Firebase Storage)
+// Upload: frontend sends image file via multipart/form-data
 export const uploadImage = (formData) =>
   api.post('/api/images/', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
@@ -29,7 +45,11 @@ export const getContact    = () => api.get('/api/contact/');
 export const updateContact = (data) => api.put('/api/contact/', data);
 
 // ── Image URL helper ──────────────────────────────────────────────
-// filename is now the full Firebase Storage URL — return it as-is
-export const getImageUrl = (filename) => filename;
+export const getImageUrl = (filename) => {
+  if (filename && filename.startsWith('http')) {
+    return filename; // It's an absolute URL
+  }
+  return filename; // Failover string
+};
 
 export default api;
