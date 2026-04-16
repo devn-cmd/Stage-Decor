@@ -102,7 +102,7 @@ export default function Sidebar() {
             Logout
           </button>
           <div className="sidebar__version">v1.0.0</div>
-          <div className="sidebar__creator">Crafted by <span>Devadeth</span></div>
+          <div className="sidebar__creator">Crafted by <span>Devadeth N</span></div>
         </div>
       </aside>
     </>

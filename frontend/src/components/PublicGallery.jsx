@@ -172,7 +172,7 @@ export default function PublicGallery() {
           &copy; {new Date().getFullYear()} Stage Decor. All rights reserved.
         </p>
         <p className="pub-footer__creator">
-          Crafted with ✦ by <span>Devadeth</span>
+          Crafted with ✦ by <span>Devadeth N</span>
         </p>
       </footer>
 

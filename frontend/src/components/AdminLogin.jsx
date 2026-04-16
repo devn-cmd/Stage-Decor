@@ -21,7 +21,7 @@ export default function AdminLogin() {
   const handleLogin = (e) => {
     e.preventDefault();
     setError('');
-    if (username === 'Devan' && password === 'Devan') {
+    if (username === 'Devan' && password === '5753') {
       localStorage.setItem('isAuthenticated', 'true');
       navigate('/admin');
     } else {
@@ -148,7 +148,7 @@ export default function AdminLogin() {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             fontWeight: 600,
-          }}>Devadeth</span>
+          }}>Devadeth N</span>
         </p>
       </form>
     </div>
