@@ -448,6 +448,36 @@
 
 .pub-back-btn:hover { color: var(--pub-lavender); }
 
+/* ── Footer ─────────────────────────────────────────────────── */
+.pub-footer {
+  text-align: center;
+  padding: 32px 20px 40px;
+  border-top: 1px solid var(--pub-border-subtle);
+  margin-top: 40px;
+  background: var(--pub-bg-secondary);
+}
+
+.pub-footer__copy {
+  font-size: 0.78rem;
+  color: var(--pub-text-muted);
+  margin-bottom: 6px;
+  letter-spacing: 0.03em;
+}
+
+.pub-footer__creator {
+  font-size: 0.82rem;
+  color: var(--pub-text-muted);
+}
+
+.pub-footer__creator span {
+  background: var(--pub-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
 /* ── Tablet (768px) ───────────────────────────────────────────── */
 @media (max-width: 768px) {
   .pub-header {

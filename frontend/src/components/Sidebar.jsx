@@ -9,19 +9,18 @@ import {
   HiMenu,
   HiX,
 } from 'react-icons/hi';
-import { RiSparklingLine } from 'react-icons/ri';
 import './Sidebar.css';
 
 const navItems = [
-  { path: '/admin',         icon: HiOutlineViewGrid,     label: 'Dashboard' },
-  { path: '/admin/upload',  icon: HiOutlineCloudUpload,  label: 'Upload Image' },
-  { path: '/admin/gallery', icon: HiOutlinePhotograph,   label: 'Manage Gallery' },
+  { path: '/admin',         icon: HiOutlineViewGrid,    label: 'Dashboard' },
+  { path: '/admin/upload',  icon: HiOutlineCloudUpload, label: 'Upload Image' },
+  { path: '/admin/gallery', icon: HiOutlinePhotograph,  label: 'Manage Gallery' },
   { path: '/admin/contact', icon: HiOutlinePhone,        label: 'Contact Settings' },
 ];
 
 export default function Sidebar() {
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
 
   // Close sidebar whenever route changes (mobile)
@@ -59,10 +58,12 @@ export default function Sidebar() {
 
         {/* Brand */}
         <div className="sidebar__brand">
-          <div className="sidebar__logo"><RiSparklingLine /></div>
+          <div className="sidebar__logo">
+            <span className="sidebar__logo-monogram">SD</span>
+          </div>
           <div className="sidebar__brand-text">
-            <span className="sidebar__title">SilkStage</span>
-            <span className="sidebar__subtitle">Admin Panel</span>
+            <span className="sidebar__title">Stage Decor</span>
+            <span className="sidebar__subtitle">Admin Dashboard</span>
           </div>
         </div>
 
@@ -101,6 +102,7 @@ export default function Sidebar() {
             Logout
           </button>
           <div className="sidebar__version">v1.0.0</div>
+          <div className="sidebar__creator">Crafted by <span>Devadeth</span></div>
         </div>
       </aside>
     </>

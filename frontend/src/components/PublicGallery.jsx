@@ -165,6 +165,17 @@ export default function PublicGallery() {
           </div>
         </div>
       )}
+
+      {/* ── Footer ────────────────────────────────────────────── */}
+      <footer className="pub-footer">
+        <p className="pub-footer__copy">
+          &copy; {new Date().getFullYear()} Stage Decor. All rights reserved.
+        </p>
+        <p className="pub-footer__creator">
+          Crafted with ✦ by <span>Devadeth</span>
+        </p>
+      </footer>
+
     </div>
   );
 }

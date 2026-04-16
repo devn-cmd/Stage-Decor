@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { RiSparklingLine } from 'react-icons/ri';
-import { HiOutlineLockClosed, HiOutlineUser } from 'react-icons/hi';
 
 const inputStyle = {
   width: '100%',
@@ -22,11 +20,11 @@ export default function AdminLogin() {
   const handleLogin = (e) => {
     e.preventDefault();
     setError('');
-    if (username === 'admin' && password === 'admin') {
+    if (username === 'Devan' && password === 'Devan') {
       localStorage.setItem('isAuthenticated', 'true');
       navigate('/admin');
     } else {
-      setError('Invalid credentials. Use admin / admin.');
+      setError('Invalid credentials. Please try again.');
     }
   };
 
@@ -50,13 +48,24 @@ export default function AdminLogin() {
       }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-          <div style={{ fontSize: '2.5rem', color: '#6c5ce7', marginBottom: '10px' }}>
-            <RiSparklingLine />
+          <div style={{
+            width: '56px', height: '56px',
+            background: 'linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%)',
+            borderRadius: '16px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 14px',
+            boxShadow: '0 6px 24px rgba(108, 92, 231, 0.4)',
+          }}>
+            <span style={{
+              fontFamily: "'Outfit', sans-serif",
+              fontSize: '1.3rem', fontWeight: 800,
+              color: '#ffffff', letterSpacing: '-0.04em',
+            }}>SD</span>
           </div>
-          <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '1.9rem', color: '#f0f0f8', marginBottom: '4px' }}>
-            SilkStage
+          <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '1.75rem', color: '#f0f0f8', marginBottom: '4px', letterSpacing: '-0.02em' }}>
+            Stage Decor
           </h1>
-          <p style={{ color: '#8892b0', fontSize: '0.9rem' }}>Admin Panel Login</p>
+          <p style={{ color: '#8892b0', fontSize: '0.88rem', letterSpacing: '0.04em' }}>Admin Panel</p>
         </div>
 
         {/* Username */}
@@ -116,7 +125,7 @@ export default function AdminLogin() {
         </button>
 
         <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.8rem', color: '#5a6380' }}>
-          Default credentials: admin / admin
+          Use your credentials to access the panel
         </p>
 
         <div style={{ textAlign: 'center', marginTop: '20px' }}>
@@ -124,6 +133,22 @@ export default function AdminLogin() {
             ← Back to Gallery
           </Link>
         </div>
+
+        {/* Creator credit */}
+        <p style={{
+          textAlign: 'center', marginTop: '28px',
+          fontSize: '0.72rem', color: '#5a6380',
+          borderTop: '1px solid rgba(108, 92, 231, 0.12)',
+          paddingTop: '16px',
+        }}>
+          Crafted by{' '}
+          <span style={{
+            background: 'linear-gradient(135deg, #6c5ce7, #a29bfe)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontWeight: 600,
+          }}>Devadeth</span>
+        </p>
       </form>
     </div>
   );
